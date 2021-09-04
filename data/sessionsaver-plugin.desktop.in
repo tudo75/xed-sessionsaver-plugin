@@ -1,0 +1,8 @@
+[Plugin]
+Module=sessionsaver
+IAge=2
+Name=sessionsaver
+Description=Xed porting of the Gedit sessionsaver plugin
+Comment=Xed porting of the Gedit sessionsaver plugin
+Authors=Nicola "tudo75" Tudino
+Copyright=Copyright © 2021 Nicola "tudo75" Tudino
