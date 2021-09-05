@@ -5,6 +5,7 @@ assert('com.github.tudo75.xed-sessionsaver-plugin.gschema.xml'==meson.project_na
 
 cc = meson.get_compiler('c')
 
+gnome = import('gnome')
 i18n = import('i18n')
 
 add_global_arguments('-DGETTEXT_PACKAGE="@0@"'.format (meson.project_name()), language:'c')

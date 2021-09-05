@@ -23,17 +23,17 @@
 
 namespace SessionSaverPlugin {
 
-    public class Session {
+    public class Session : GLib.Object {
 
-        private string session_name;
-        private GLib.File[] session_files;
+        public string session_name;
+        public GLib.SList<GLib.File> session_files;
 
-        public Session (string name,  GLib.File[] files = {}) {
+        public Session (string name,  GLib.SList<GLib.File> files) {
             this.session_name = name;
-            if (files.length == 0 || files == null) {
-                this.session_files = {};
+            if (files.length () == 0 || files == null) {
+                this.session_files = new GLib.SList<GLib.File> ();
             } else {
-                this.session_files = files;
+                this.session_files = (GLib.SList<GLib.File>) files.copy ();
             }
         }
 
@@ -46,15 +46,7 @@ namespace SessionSaverPlugin {
         }
 
         public void add_file (string filename) {
-            this.session_files += GLib.File.new_for_uri (filename);
-        }
-
-        public string get_session_name () {
-            return this.session_name;
-        }
-
-        public GLib.File[] get_session_files () {
-            return this.session_files;
+            this.session_files.append (GLib.File.new_for_uri (filename));
         }
     }
 
@@ -67,7 +59,7 @@ namespace SessionSaverPlugin {
         // [Signal (run_last=true, type_none=true)]
         public signal void session_removed ();
 
-        public void SessionStore () {}
+        public SessionStore () {}
 
         public Session get_item (int index) {
             return this [index];
@@ -130,7 +122,7 @@ namespace SessionSaverPlugin {
             if (saved_sessions.child_element_count > 0) {
                 GXml.DomHTMLCollection sessions = saved_sessions.get_elements_by_tag_name ("session");
                 for (var i = 0; i < sessions.length; i++) {
-                    Session new_session = new Session (sessions[i].get_attribute ("name"));
+                    Session new_session = new Session (sessions[i].get_attribute ("name"), new GLib.SList<GLib.File> ());
                     GXml.DomHTMLCollection files = sessions[i].get_elements_by_tag_name ("file");
                     for (var j = 0; j < files.length; j++) {
                         new_session.add_file (files[j].get_attribute ("path"));
@@ -143,8 +135,8 @@ namespace SessionSaverPlugin {
         public void save () throws GLib.Error {
             for (var i = 0; i < this.size; i++) {
                 Session current = this.get_item (i);
-                GXml.Element new_session = this.get_session (doc, saved_sessions, current.get_session_name ());
-                GLib.File[] session_files = current.get_session_files ();
+                GXml.Element new_session = this.get_session (doc, saved_sessions, current.session_name);
+                GLib.SList<GLib.File> session_files = (GLib.SList<GLib.File>) current.session_files.copy ();
                 foreach (var file in session_files)
                     this.insert_file (doc, new_session, file.get_uri ());
             }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/com/github/tudo75/xed-sessionsaver-plugin/">
+        <file alias="sessionsaver.ui">sessionsaver.ui</file>
+    </gresource>
+</gresources>

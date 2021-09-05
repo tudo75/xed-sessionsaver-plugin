@@ -62,6 +62,10 @@ namespace SessionSaverPlugin {
         public void deactivate () {
             print ("SessionSaverApp deactivated\n");
         }
+
+        public static Xed.Window create_window (Gdk.Screen screen) {
+            return create_window (screen);
+        }
     }
     
     /*
@@ -72,6 +76,8 @@ namespace SessionSaverPlugin {
         private uint merge_id;
         private Gtk.UIManager manager;
         private XMLSessionStore sessions;
+        private string current_session = "";
+        private int n_sessions = 0;
         
         public SessionSaverWindow () {
             GLib.Object ();
@@ -91,24 +97,78 @@ namespace SessionSaverPlugin {
             manager = window.get_ui_manager ();
 
             Gtk.ActionGroup action_group = new Gtk.ActionGroup ("sessionsaver");
-            Gtk.Action action_manage_sessions = new Gtk.Action ("manage-session", _("Manage Saved Sessions"), _("Manage Saved Sessions"), "win.managedsession");
+            Gtk.Action action_manage_sessions = new Gtk.Action ("managedsession", _("Manage Saved Sessions"), _("Manage Saved Sessions"), "win.managedsession");
             action_group.add_action (action_manage_sessions);
-            Gtk.Action action_save_sessions = new Gtk.Action ("save-session", _("Save Session"), _("Save Session"), "win.savesession");
+            Gtk.Action action_save_sessions = new Gtk.Action ("savesession", _("Save Session"), _("Save Session"), "win.savesession");
+            action_save_sessions.activate.connect (on_save_session_action);
             action_group.add_action (action_save_sessions);
+            for (var i = 0; i < sessions.size; i++) {
+                Gtk.Action action_recover_session = new Gtk.Action (
+                                        "recoversession-" + i.to_string (),
+                                        _("Recover Session ") + i.to_string (),
+                                        _("Recover Session ") + i.to_string (),
+                                        "win.session_" + i.to_string ()
+                                    );
+                action_recover_session.connect ("activate", session_menu_action, sessions[i]);
+                action_group.add_action (action_recover_session);
+            }
+
             merge_id = manager.new_merge_id ();
             manager.insert_action_group (action_group, -1);
-            manager.add_ui (merge_id, "/MenuBar/ToolsMenu/ToolsOps_3", "manage-session", "manage-session", Gtk.UIManagerItemType.MENUITEM, false);
-            manager.add_ui (merge_id, "/MenuBar/ToolsMenu/ToolsOps_3", "save-session", "save-session", Gtk.UIManagerItemType.MENUITEM, false);
+            manager.add_ui (merge_id, "/MenuBar/ToolsMenu/ToolsOps_3", "managedsession", "managedsession", Gtk.UIManagerItemType.MENUITEM, false);
+            manager.add_ui (merge_id, "/MenuBar/ToolsMenu/ToolsOps_3", "savesession", "savesession", Gtk.UIManagerItemType.MENUITEM, false);
+            for (var i = 0; i < sessions.size; i++) {
+                manager.add_ui (
+                    merge_id,
+                    "/MenuBar/ToolsMenu/ToolsOps_3",
+                    "recoversession-" + i.to_string (),
+                    "recoversession-" + i.to_string (),
+                    Gtk.UIManagerItemType.MENUITEM,
+                    false
+                );
+            }
 
+            this.n_sessions = sessions.size;
         }
 
         public void deactivate () {
             print ("SessionSaverWindow deactivated\n");
+            window.remove_action ("managedsession");
+            window.remove_action ("savesession");
+            for (var i = 0; i < this.n_sessions; i++)
+                window.remove_action ("recoversession-" + i.to_string ());
             manager.remove_ui (merge_id);
         }
 
         public void update_state () {
             print ("SessionSaverWindow update_state\n");
+        }
+
+        public void session_menu_action (Session session) {
+            this.load_session (session);
+        }
+
+        public void on_save_session_action () {
+            print ("on_save_session_action");
+            SaveSessionDialog dialog = new SaveSessionDialog (window, this.sessions, this.current_session, this);
+            dialog.run ();
+        }
+
+        public void on_updated_sessions () {
+
+        }
+
+        public void load_session (Session session) {
+            Xed.Tab tab = this.window.get_active_tab ();
+            Xed.Window new_window;
+            if (tab != null && ! (tab.get_document ().is_untouched () && tab.get_state () == Xed.TabState.STATE_NORMAL)) {
+                new_window = SessionSaverApp.create_window (Gdk.Screen.get_default ());
+                new_window.show ();
+            } else {
+                new_window = this.window;
+            }
+            Xed.commands_load_locations (new_window, session.session_files, Gtk.SourceEncoding.et_utf8 (), 0);
+            this.current_session = session.session_name;
         }
     }
     
