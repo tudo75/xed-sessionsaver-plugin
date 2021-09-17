@@ -91,13 +91,30 @@ namespace SessionSaverPlugin {
             print ("SessionSaverWindow activated\n");
             try {
                 sessions = new XMLSessionStore ();
+                sessions.load ();
             } catch (GLib.Error e) {
                 print ("Errore XMLSessionStore: %s\n", e.message);
             }
             manager = window.get_ui_manager ();
 
+            this.n_sessions = sessions.size;
+
+            this.insert_menu ();
+        }
+
+        public void deactivate () {
+            print ("SessionSaverWindow deactivated\n");
+            this.remove_menu ();
+        }
+
+        public void update_state () {
+            print ("SessionSaverWindow update_state\n");
+        }
+
+        private void insert_menu () {
             Gtk.ActionGroup action_group = new Gtk.ActionGroup ("sessionsaver");
             Gtk.Action action_manage_sessions = new Gtk.Action ("managedsession", _("Manage Saved Sessions"), _("Manage Saved Sessions"), "win.managedsession");
+            action_manage_sessions.activate.connect (this.on_manage_sessions_action);
             action_group.add_action (action_manage_sessions);
             Gtk.Action action_save_sessions = new Gtk.Action ("savesession", _("Save Session"), _("Save Session"), "win.savesession");
             action_save_sessions.activate.connect (on_save_session_action);
@@ -127,35 +144,34 @@ namespace SessionSaverPlugin {
                     false
                 );
             }
-
-            this.n_sessions = sessions.size;
         }
 
-        public void deactivate () {
-            print ("SessionSaverWindow deactivated\n");
-            window.remove_action ("managedsession");
-            window.remove_action ("savesession");
-            for (var i = 0; i < this.n_sessions; i++)
-                window.remove_action ("recoversession-" + i.to_string ());
-            manager.remove_ui (merge_id);
-        }
-
-        public void update_state () {
-            print ("SessionSaverWindow update_state\n");
+        private void remove_menu () {
+            this.window.remove_action ("managedsession");
+            this.window.remove_action ("savesession");
+            for (var i = 0; i < sessions.size; i++) {
+                this.window.remove_action ("recoversession-" + i.to_string ());
+            }
+            manager.remove_ui (this.merge_id);
         }
 
         public void session_menu_action (Session session) {
             this.load_session (session);
         }
 
+        public void on_manage_sessions_action () {
+            SessionManagerDialog dialog = new SessionManagerDialog (this.window, this.sessions);
+            dialog.session_selected.connect (load_session);
+            dialog.sessions_updated.connect (on_updated_sessions);
+        }
+
         public void on_save_session_action () {
-            print ("on_save_session_action");
-            SaveSessionDialog dialog = new SaveSessionDialog (window, this.sessions, this.current_session, this);
-            dialog.run ();
+            new SessionSaverDialog (this.window, this.sessions, this.current_session, this);
         }
 
         public void on_updated_sessions () {
-
+            this.remove_menu ();
+            this.insert_menu ();
         }
 
         public void load_session (Session session) {
