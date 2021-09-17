@@ -77,73 +77,55 @@ namespace SessionSaverPlugin {
         }
     }
 
-    public class Dialog : GLib.Object {
-
-        private const string UI_FILE = "/com/github/tudo75/xed-sessionsaver-plugin/sessionsaver.ui";
-        private Gtk.Builder ui;
-        public Xed.Window parent;
-        public Gtk.Dialog dialog;
-
-        public Dialog (string main_widget, Xed.Window parent_window) {
-            this.parent = parent_window;
-            this.ui = new Gtk.Builder ();
-            
-            try {
-                this.ui.add_from_resource (UI_FILE);
-            } catch (GLib.Error e) {
-                print ("Error sessionsaver.ui: %s\n", e.message);
-            }
-            this.dialog = (Gtk.Dialog) this.ui.get_object (main_widget);
-            this.dialog.delete_event.connect (this.on_delete_event);
-        }
-
-        public GLib.Object get_item (string item) {
-            return this.ui.get_object (item);
-        }
-
-        private bool on_delete_event (Gtk.Widget dialog, Gdk.EventAny event) {
-            dialog.hide ();
-            return true;
-        }
-
-        public void run () {
-            this.dialog.set_transient_for (this.parent);
-            this.dialog.show ();
-        }
-
-        public void destroy () {
-            this.dialog.destroy ();
-            this.destroy ();
-        }
-    }
-
-    public class SaveSessionDialog : Dialog {
+    public class SessionSaverDialog : Gtk.Dialog {
 
         private const int NAME_COLUMN = 1;
         private XMLSessionStore sessions;
         private Gtk.ComboBox combobox;
-        private SessionSaverWindow session_saver_window;
+        private SessionSaverWindow my_session_saver_window;
+        private Gtk.Button save_btn;
+        private Xed.Window parent_xed_window;
 
-        public SaveSessionDialog (Xed.Window window, XMLSessionStore store, string current_session, SessionSaverWindow session_saver_window) {
-            base ("save-session-dialog", window);
+        public SessionSaverDialog (Xed.Window parent_window, XMLSessionStore store, string current_session, SessionSaverWindow session_saver_window) {
+            this.parent_xed_window = parent_window;
+            this.set_title (_("Save session"));
+            this.set_transient_for (parent_window);
+            this.set_border_width (10);
+            this.set_resizable (false);
+            this.set_type_hint (Gdk.WindowTypeHint.DIALOG);
 
-            this.session_saver_window = session_saver_window;
+            Gtk.Box vbox = (Gtk.Box) this.get_content_area ();
+            vbox.set_orientation (Gtk.Orientation.VERTICAL);
+            vbox.set_spacing (6);
+
+            this.my_session_saver_window = session_saver_window;
             this.sessions = store;
-
             SessionModel model = new SessionModel (store);
-            
-            this.combobox = (Gtk.ComboBox) this.get_item ("session-name");
-            this.combobox.set_model (model);
-            this.combobox.set_entry_text_column (NAME_COLUMN);
-            this.combobox.changed.connect (on_name_combo_changed);
 
+            Gtk.Label label = new Gtk.Label ("Session name:");
+            label.set_xalign (0);
+            
+            this.combobox = new Gtk.ComboBox.with_model_and_entry (model);
+            this.combobox.set_entry_text_column (NAME_COLUMN);
+
+            Gtk.Button cancel_btn = (Gtk.Button) this.add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
+            cancel_btn.set_image (new Gtk.Image.from_icon_name ("process-stop", Gtk.IconSize.BUTTON));
+            this.save_btn = (Gtk.Button) this.add_button (_("Save"), Gtk.ResponseType.OK);
+            this.save_btn.set_image (new Gtk.Image.from_icon_name ("document-save", Gtk.IconSize.BUTTON));
+            
             if (current_session == null || current_session == "") {
-                // this.on_name_combo_changed ();
+                this.on_name_combo_changed (combobox);
             } else {
                 this.set_combobox_active_by_name (current_session);
             }
 
-            this.dialog.response.connect (on_response);
+            vbox.add (label);
+            vbox.add (combobox);
+
+            combobox.changed.connect (this.on_name_combo_changed);
+            this.response.connect (this.on_response);
+            this.show_all ();
+            this.show ();
         }
 
         private bool set_combobox_active_by_name (string option_name) {
@@ -165,32 +147,157 @@ namespace SessionSaverPlugin {
             return false;
         }
 
-        private void on_name_combo_changed () {
-            Gtk.Entry entry_field = (Gtk.Entry) this.combobox.get_child ();
+        private void on_name_combo_changed (Gtk.ComboBox combo) {
+            Gtk.Entry entry_field = (Gtk.Entry) combo.get_child ();
             var name = entry_field.get_text ();
-            print ("on_name_combo_changed: %s\n", name);
-            Gtk.Button button = (Gtk.Button) this.get_item ("save_button");
-            button.set_sensitive (name.length > 0);
+            this.save_btn.set_sensitive (name.length > 0);
         }
 
         private void on_response (Gtk.Dialog dialog, int response_id) {
+            print ("ComboBoxDialog.on_response OK emitted\n");
             if (response_id == Gtk.ResponseType.OK) {
                 GLib.SList<GLib.File>  files = new GLib.SList<GLib.File> ();
-                foreach (var doc in this.parent.get_documents ()) {
+                foreach (var doc in this.parent_xed_window.get_documents ()) {
                     if (doc.get_file ().get_location () != null)
                         files.append (doc.get_file ().get_location ());
                 }
                 Gtk.Entry entry_field = (Gtk.Entry) this.combobox.get_child ();
                 var name = entry_field.get_text ();
-                this.sessions.add_session (new Session(name, files));
+                this.sessions.add_session (Session () {session_name = name, session_files = (GLib.SList<GLib.File>) files.copy ()});
                 try {
                     this.sessions.save ();
                 } catch (GLib.Error e) {
                     print ("Error SaveSessionDialog.on_response XMLSessionStore.save: %s\n", e.message);
                 }
-                this.session_saver_window.on_updated_sessions ();
+                this.my_session_saver_window.on_updated_sessions ();
+            }
+            if (response_id == Gtk.ResponseType.CANCEL) {
+                print ("ComboBoxDialog.on_response CANCEL emitted\n");
+            }
+            if (response_id == Gtk.ResponseType.DELETE_EVENT) {
+                print ("ComboBoxDialog.on_response DELETE_EVENT emitted\n");
             }
             this.destroy ();
+        }
+    }
+
+    public class SessionManagerDialog : Gtk.Dialog {
+
+        public signal void session_selected (Session session);
+        public signal void sessions_updated ();
+
+        private const int OBJECT_COLUMN = 0;
+        private const int NAME_COLUMN = 1;
+        private XMLSessionStore sessions;
+        private Xed.Window parent_xed_window;
+        private Gtk.TreeView tree_view;
+        private bool are_sessions_updated = false;
+
+        public SessionManagerDialog (Xed.Window parent_window, XMLSessionStore store) {
+            this.parent_xed_window = parent_window;
+            this.set_title (_("Saved Sessions"));
+            this.set_transient_for (parent_window);
+            this.set_border_width (10);
+            this.set_resizable (false);
+            this.set_type_hint (Gdk.WindowTypeHint.DIALOG);
+            this.sessions = store;
+            this.set_size_request (400, 200);
+
+            SessionModel model = new SessionModel (store);
+
+            Gtk.Box vbox = (Gtk.Box) this.get_content_area ();
+            vbox.set_orientation (Gtk.Orientation.VERTICAL);
+            vbox.set_spacing (0);
+            Gtk.Box hbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+
+            Gtk.ScrolledWindow scrolled_window = new Gtk.ScrolledWindow (null, null);
+            scrolled_window.set_hexpand (true);
+            scrolled_window.set_vexpand (true);
+            scrolled_window.set_shadow_type (Gtk.ShadowType.IN);
+            scrolled_window.hscrollbar_policy = Gtk.PolicyType.NEVER;
+
+            this.tree_view = new Gtk.TreeView.with_model (model);
+            Gtk.CellRendererText renderer = new Gtk.CellRendererText ();
+            Gtk.TreeViewColumn column = new Gtk.TreeViewColumn ();
+            column.set_title (_("Session Name"));
+            column.pack_start (renderer, true);
+            column.add_attribute (renderer, "text", NAME_COLUMN);
+            tree_view.append_column (column);
+            scrolled_window.add (tree_view);
+
+            Gtk.Box button_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
+            button_box.set_homogeneous (false);
+            button_box.set_vexpand (true);
+            Gtk.Button open_btn = new Gtk.Button.from_icon_name ("document-open", Gtk.IconSize.BUTTON);
+            Gtk.Button remove_btn = new Gtk.Button.from_icon_name ("edit-delete", Gtk.IconSize.BUTTON);
+            Gtk.Button close_btn = new Gtk.Button.from_icon_name ("process-stop", Gtk.IconSize.BUTTON);
+            open_btn.set_label (_("Open"));
+            open_btn.set_alignment (0, (float) 0.5);
+            open_btn.clicked.connect (this.on_open_button_clicked);
+            remove_btn.set_label (_("Remove"));
+            remove_btn.set_alignment (0, (float) 0.5);
+            remove_btn.clicked.connect (this.on_delete_button_clicked);
+            close_btn.set_label (_("Close"));
+            close_btn.set_alignment (0, (float) 0.5);
+            close_btn.clicked.connect (this.on_close_button_clicked);
+            button_box.pack_start (open_btn, false, true, 0);
+            button_box.pack_start (remove_btn, false, true, 0);
+            button_box.pack_end (close_btn, false, true, 0);
+
+            this.delete_event.connect (on_delete_event);
+
+            hbox.add (scrolled_window);
+            hbox.add (button_box);
+            vbox.add (hbox);
+            this.show_all ();
+            this.show ();
+        }
+
+        private bool on_delete_event (Gtk.Widget dialog, Gdk.EventAny event) {
+            this.should_save_sessions ();
+            this.destroy ();
+            return true;
+        }
+
+        private Session get_current_session () {
+            Gtk.TreeModel model;
+            Gtk.TreeIter iter;
+            this.tree_view.get_selection ().get_selected (out model, out iter);
+            Session session;
+            model.get (iter, OBJECT_COLUMN, out session);
+            return session;
+        }
+
+        private void on_open_button_clicked (Gtk.Button button) {
+            Session session = this.get_current_session ();
+            if (session.session_name != "" && session.session_name != null) {
+                this.session_selected (session);
+            }
+            this.destroy ();
+        }
+
+        private void on_delete_button_clicked (Gtk.Button button) {
+            Session session = this.get_current_session ();
+            this.sessions.remove (session);
+            this.are_sessions_updated = true;
+        }
+
+        private void on_close_button_clicked (Gtk.Button button) {
+            this.should_save_sessions ();
+            this.destroy ();
+        }
+
+        private void should_save_sessions () {
+            if (are_sessions_updated) {
+                try {
+                    this.sessions.save ();
+                    this.are_sessions_updated = false;
+                    this.sessions_updated ();
+                } catch (GLib.Error e) {
+                    print ("should_save_sessions error: %s\n", e.message);
+                }
+
+            }
         }
     }
 }

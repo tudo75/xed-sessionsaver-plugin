@@ -13,12 +13,6 @@ sources = files(
     'dialogs.vala',
 )
 
-sources += gnome.compile_resources(
-    meson.project_name() + '.resources',
-    '../data/com.github.tudo75.xed-sessionsaver-plugin.gresource.xml',
-    source_dir: '../data',
-)
-
 libsessionsaver = library(
     'sessionsaver',
     sources,
@@ -36,11 +30,3 @@ libsessionsaver = library(
         vapidir,
     ]
 )
-
-# install_data(
-#     'ui/sessionsaver.ui',
-#     install_dir: join_paths(
-#         pluginsdatadir,
-#         'sessionsaver',
-#     )
-# )
