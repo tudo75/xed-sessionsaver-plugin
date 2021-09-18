@@ -56,6 +56,13 @@ namespace SessionSaverPlugin {
             return this [index];
         }
 
+        public Session get_item_by_string (string session_name) {
+            foreach (var item in this)
+                if (item.session_name == session_name)
+                    return item;
+            return Session();
+        }
+
         public int session_compare (Session a, Session b) {          
             if (a.lt (b))
                 return -1;
@@ -112,10 +119,13 @@ namespace SessionSaverPlugin {
         public void load () throws GLib.Error {
             if (saved_sessions.child_element_count > 0) {
                 GXml.DomHTMLCollection sessions = saved_sessions.get_elements_by_tag_name ("session");
+                print ("sessions.length: %s\n", sessions.length.to_string ());
                 for (var i = 0; i < sessions.length; i++) {
+                    print ("session name: %s\n", sessions[i].get_attribute ("name"));
                     Session new_session = {sessions[i].get_attribute ("name"), new GLib.SList<GLib.File> ()};
                     GXml.DomHTMLCollection files = sessions[i].get_elements_by_tag_name ("file");
                     for (var j = 0; j < files.length; j++) {
+                        print ("\tsession file: %s - %s\n", j.to_string (), files[j].get_attribute ("path"));
                         new_session.add_file (files[j].get_attribute ("path"));
                     }
                     this.add_session (new_session);
@@ -128,9 +138,13 @@ namespace SessionSaverPlugin {
                 Session current = this.get_item (i);
                 GXml.Element new_session = this.get_session (doc, saved_sessions, current.session_name);
                 GLib.SList<GLib.File> session_files = (GLib.SList<GLib.File>) current.session_files.copy ();
-                foreach (var file in session_files)
-                    if ( file != null)
-                        this.write_to_file (doc, new_session, file.get_uri ());
+                if (session_files.length () > 0) {
+                    foreach (var file in session_files) {
+                        if (file != null && file.get_uri () != "") {
+                            this.write_to_file (doc, new_session, file.get_uri ());
+                        }
+                    }
+                }
             }
             saved_sessions.write_file (f);
         }

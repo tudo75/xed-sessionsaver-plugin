@@ -1,2 +1,4 @@
 data/sessionsaver-plugin.desktop.in
 src/sessionsaver.vala
+src/dialogs.vala
+src/session.vala

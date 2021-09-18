@@ -79,14 +79,15 @@ namespace SessionSaverPlugin {
 
     public class SessionSaverDialog : Gtk.Dialog {
 
+        public signal void sessions_updated ();
+
         private const int NAME_COLUMN = 1;
         private XMLSessionStore sessions;
         private Gtk.ComboBox combobox;
-        private SessionSaverWindow my_session_saver_window;
         private Gtk.Button save_btn;
         private Xed.Window parent_xed_window;
 
-        public SessionSaverDialog (Xed.Window parent_window, XMLSessionStore store, string current_session, SessionSaverWindow session_saver_window) {
+        public SessionSaverDialog (Xed.Window parent_window, XMLSessionStore store, string current_session) {
             this.parent_xed_window = parent_window;
             this.set_title (_("Save session"));
             this.set_transient_for (parent_window);
@@ -97,8 +98,7 @@ namespace SessionSaverPlugin {
             Gtk.Box vbox = (Gtk.Box) this.get_content_area ();
             vbox.set_orientation (Gtk.Orientation.VERTICAL);
             vbox.set_spacing (6);
-
-            this.my_session_saver_window = session_saver_window;
+            
             this.sessions = store;
             SessionModel model = new SessionModel (store);
 
@@ -110,8 +110,10 @@ namespace SessionSaverPlugin {
 
             Gtk.Button cancel_btn = (Gtk.Button) this.add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
             cancel_btn.set_image (new Gtk.Image.from_icon_name ("process-stop", Gtk.IconSize.BUTTON));
+            cancel_btn.set_alignment (0, (float) 0.5);
             this.save_btn = (Gtk.Button) this.add_button (_("Save"), Gtk.ResponseType.OK);
             this.save_btn.set_image (new Gtk.Image.from_icon_name ("document-save", Gtk.IconSize.BUTTON));
+            this.save_btn.set_alignment (0, (float) 0.5);
             
             if (current_session == null || current_session == "") {
                 this.on_name_combo_changed (combobox);
@@ -158,8 +160,9 @@ namespace SessionSaverPlugin {
             if (response_id == Gtk.ResponseType.OK) {
                 GLib.SList<GLib.File>  files = new GLib.SList<GLib.File> ();
                 foreach (var doc in this.parent_xed_window.get_documents ()) {
-                    if (doc.get_file ().get_location () != null)
+                    if (doc.get_file ().get_location () != null) {
                         files.append (doc.get_file ().get_location ());
+                    }
                 }
                 Gtk.Entry entry_field = (Gtk.Entry) this.combobox.get_child ();
                 var name = entry_field.get_text ();
@@ -169,7 +172,7 @@ namespace SessionSaverPlugin {
                 } catch (GLib.Error e) {
                     print ("Error SaveSessionDialog.on_response XMLSessionStore.save: %s\n", e.message);
                 }
-                this.my_session_saver_window.on_updated_sessions ();
+                this.sessions_updated ();
             }
             if (response_id == Gtk.ResponseType.CANCEL) {
                 print ("ComboBoxDialog.on_response CANCEL emitted\n");
@@ -203,7 +206,7 @@ namespace SessionSaverPlugin {
             this.sessions = store;
             this.set_size_request (400, 200);
 
-            SessionModel model = new SessionModel (store);
+            SessionModel model = new SessionModel (this.sessions);
 
             Gtk.Box vbox = (Gtk.Box) this.get_content_area ();
             vbox.set_orientation (Gtk.Orientation.VERTICAL);
@@ -263,14 +266,22 @@ namespace SessionSaverPlugin {
             Gtk.TreeModel model;
             Gtk.TreeIter iter;
             this.tree_view.get_selection ().get_selected (out model, out iter);
-            Session session;
-            model.get (iter, OBJECT_COLUMN, out session);
+            string session_name = "";
+            model.get (iter, NAME_COLUMN, out session_name);
+            var session = this.sessions.get_item_by_string (session_name);
+            print ("Selected session_name: %s\n", session.session_name);
+            print ("Selected session_files.length: %s\n", session.session_files.length ().to_string ());
+            foreach (var file in session.session_files) {
+                if (file != null && file.get_uri () != "") {
+                    print ("\t\tITEM -> session_file: %s\n", file.get_uri ());
+                }
+            }
             return session;
         }
 
         private void on_open_button_clicked (Gtk.Button button) {
             Session session = this.get_current_session ();
-            if (session.session_name != "" && session.session_name != null) {
+            if (session.session_name != "" && session.session_name != null && session.session_files.length () > 0) {
                 this.session_selected (session);
             }
             this.destroy ();

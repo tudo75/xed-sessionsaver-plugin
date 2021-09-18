@@ -75,9 +75,10 @@ namespace SessionSaverPlugin {
 
         private uint merge_id;
         private Gtk.UIManager manager;
-        private XMLSessionStore sessions;
+        private XMLSessionStore store;
         private string current_session = "";
         private int n_sessions = 0;
+        private Gtk.ActionGroup action_group;
         
         public SessionSaverWindow () {
             GLib.Object ();
@@ -90,14 +91,14 @@ namespace SessionSaverPlugin {
         public void activate () {
             print ("SessionSaverWindow activated\n");
             try {
-                sessions = new XMLSessionStore ();
-                sessions.load ();
+                store = new XMLSessionStore ();
+                store.load ();
             } catch (GLib.Error e) {
                 print ("Errore XMLSessionStore: %s\n", e.message);
             }
             manager = window.get_ui_manager ();
 
-            this.n_sessions = sessions.size;
+            this.n_sessions = store.size;
 
             this.insert_menu ();
         }
@@ -108,65 +109,41 @@ namespace SessionSaverPlugin {
         }
 
         public void update_state () {
-            print ("SessionSaverWindow update_state\n");
+            // print ("SessionSaverWindow update_state\n");
         }
 
         private void insert_menu () {
-            Gtk.ActionGroup action_group = new Gtk.ActionGroup ("sessionsaver");
-            Gtk.Action action_manage_sessions = new Gtk.Action ("managedsession", _("Manage Saved Sessions"), _("Manage Saved Sessions"), "win.managedsession");
+            action_group = new Gtk.ActionGroup ("sessionsaver");
+            Gtk.Action action_manage_sessions = new Gtk.Action ("managedsession", _("Manage Saved Sessions"), _("Manage Saved Sessions"), "system-software-install");
             action_manage_sessions.activate.connect (this.on_manage_sessions_action);
             action_group.add_action (action_manage_sessions);
-            Gtk.Action action_save_sessions = new Gtk.Action ("savesession", _("Save Session"), _("Save Session"), "win.savesession");
-            action_save_sessions.activate.connect (on_save_session_action);
+            Gtk.Action action_save_sessions = new Gtk.Action ("savesession", _("Save Session"), _("Save Session"), "document-save-as");
+            action_save_sessions.activate.connect (this.on_save_session_action);
             action_group.add_action (action_save_sessions);
-            for (var i = 0; i < sessions.size; i++) {
-                Gtk.Action action_recover_session = new Gtk.Action (
-                                        "recoversession-" + i.to_string (),
-                                        _("Recover Session ") + i.to_string (),
-                                        _("Recover Session ") + i.to_string (),
-                                        "win.session_" + i.to_string ()
-                                    );
-                action_recover_session.connect ("activate", session_menu_action, sessions[i]);
-                action_group.add_action (action_recover_session);
-            }
 
             merge_id = manager.new_merge_id ();
             manager.insert_action_group (action_group, -1);
             manager.add_ui (merge_id, "/MenuBar/ToolsMenu/ToolsOps_3", "managedsession", "managedsession", Gtk.UIManagerItemType.MENUITEM, false);
             manager.add_ui (merge_id, "/MenuBar/ToolsMenu/ToolsOps_3", "savesession", "savesession", Gtk.UIManagerItemType.MENUITEM, false);
-            for (var i = 0; i < sessions.size; i++) {
-                manager.add_ui (
-                    merge_id,
-                    "/MenuBar/ToolsMenu/ToolsOps_3",
-                    "recoversession-" + i.to_string (),
-                    "recoversession-" + i.to_string (),
-                    Gtk.UIManagerItemType.MENUITEM,
-                    false
-                );
-            }
+            
         }
 
         private void remove_menu () {
+            manager.remove_action_group (action_group);
             this.window.remove_action ("managedsession");
             this.window.remove_action ("savesession");
-            for (var i = 0; i < sessions.size; i++) {
-                this.window.remove_action ("recoversession-" + i.to_string ());
-            }
             manager.remove_ui (this.merge_id);
         }
 
-        public void session_menu_action (Session session) {
-            this.load_session (session);
-        }
-
         public void on_manage_sessions_action () {
-            SessionManagerDialog dialog = new SessionManagerDialog (this.window, this.sessions);
+            SessionManagerDialog dialog = new SessionManagerDialog (this.window, this.store);
             dialog.session_selected.connect (load_session);
             dialog.sessions_updated.connect (on_updated_sessions);
         }
 
         public void on_save_session_action () {
-            new SessionSaverDialog (this.window, this.sessions, this.current_session, this);
+            SessionSaverDialog dialog = new SessionSaverDialog (this.window, this.store, this.current_session);
+            dialog.sessions_updated.connect (on_updated_sessions);
         }
 
         public void on_updated_sessions () {
@@ -175,7 +152,9 @@ namespace SessionSaverPlugin {
         }
 
         public void load_session (Session session) {
+            print ("Session Name: %s\n", session.session_name);
             Xed.Tab tab = this.window.get_active_tab ();
+            /*
             Xed.Window new_window;
             if (tab != null && ! (tab.get_document ().is_untouched () && tab.get_state () == Xed.TabState.STATE_NORMAL)) {
                 new_window = SessionSaverApp.create_window (Gdk.Screen.get_default ());
@@ -183,7 +162,9 @@ namespace SessionSaverPlugin {
             } else {
                 new_window = this.window;
             }
-            Xed.commands_load_locations (new_window, session.session_files, Gtk.SourceEncoding.et_utf8 (), 0);
+            Xed.commands_load_locations (new_window, session.session_files, null, 0);
+            */
+            Xed.commands_load_locations (this.window, session.session_files, null, 0);
             this.current_session = session.session_name;
         }
     }
