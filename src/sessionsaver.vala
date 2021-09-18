@@ -152,9 +152,8 @@ namespace SessionSaverPlugin {
         }
 
         public void load_session (Session session) {
-            print ("Session Name: %s\n", session.session_name);
-            Xed.Tab tab = this.window.get_active_tab ();
             /*
+            Xed.Tab tab = this.window.get_active_tab ();
             Xed.Window new_window;
             if (tab != null && ! (tab.get_document ().is_untouched () && tab.get_state () == Xed.TabState.STATE_NORMAL)) {
                 new_window = SessionSaverApp.create_window (Gdk.Screen.get_default ());

@@ -156,17 +156,16 @@ namespace SessionSaverPlugin {
         }
 
         private void on_response (Gtk.Dialog dialog, int response_id) {
-            print ("ComboBoxDialog.on_response OK emitted\n");
             if (response_id == Gtk.ResponseType.OK) {
-                GLib.SList<GLib.File>  files = new GLib.SList<GLib.File> ();
-                foreach (var doc in this.parent_xed_window.get_documents ()) {
-                    if (doc.get_file ().get_location () != null) {
-                        files.append (doc.get_file ().get_location ());
-                    }
-                }
                 Gtk.Entry entry_field = (Gtk.Entry) this.combobox.get_child ();
                 var name = entry_field.get_text ();
-                this.sessions.add_session (Session () {session_name = name, session_files = (GLib.SList<GLib.File>) files.copy ()});
+                var new_session = Session () {session_name = name, session_files = new GLib.SList<GLib.File> ()};
+                foreach (var doc in this.parent_xed_window.get_documents ()) {
+                    if (doc.get_file ().get_location () != null) {
+                       new_session.add_file (doc.get_file ().get_location ().get_uri ());
+                    }
+                }
+                this.sessions.add_session (new_session);
                 try {
                     this.sessions.save ();
                 } catch (GLib.Error e) {
@@ -269,13 +268,6 @@ namespace SessionSaverPlugin {
             string session_name = "";
             model.get (iter, NAME_COLUMN, out session_name);
             var session = this.sessions.get_item_by_string (session_name);
-            print ("Selected session_name: %s\n", session.session_name);
-            print ("Selected session_files.length: %s\n", session.session_files.length ().to_string ());
-            foreach (var file in session.session_files) {
-                if (file != null && file.get_uri () != "") {
-                    print ("\t\tITEM -> session_file: %s\n", file.get_uri ());
-                }
-            }
             return session;
         }
 

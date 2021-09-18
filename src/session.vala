@@ -119,13 +119,10 @@ namespace SessionSaverPlugin {
         public void load () throws GLib.Error {
             if (saved_sessions.child_element_count > 0) {
                 GXml.DomHTMLCollection sessions = saved_sessions.get_elements_by_tag_name ("session");
-                print ("sessions.length: %s\n", sessions.length.to_string ());
                 for (var i = 0; i < sessions.length; i++) {
-                    print ("session name: %s\n", sessions[i].get_attribute ("name"));
                     Session new_session = {sessions[i].get_attribute ("name"), new GLib.SList<GLib.File> ()};
                     GXml.DomHTMLCollection files = sessions[i].get_elements_by_tag_name ("file");
                     for (var j = 0; j < files.length; j++) {
-                        print ("\tsession file: %s - %s\n", j.to_string (), files[j].get_attribute ("path"));
                         new_session.add_file (files[j].get_attribute ("path"));
                     }
                     this.add_session (new_session);
