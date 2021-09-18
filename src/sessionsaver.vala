@@ -36,7 +36,6 @@ namespace SessionSaverPlugin {
         // Register my plugin extension
         objmodule.register_extension_type (typeof (Xed.AppActivatable), typeof (SessionSaverPlugin.SessionSaverApp));
         objmodule.register_extension_type (typeof (Xed.WindowActivatable), typeof (SessionSaverPlugin.SessionSaverWindow));
-        objmodule.register_extension_type (typeof (Xed.ViewActivatable), typeof (SessionSaverPlugin.SessionSaverView));
         // Register my config dialog
         objmodule.register_extension_type (typeof (PeasGtk.Configurable), typeof (SessionSaverPlugin.ConfigSessionSaver));
     }
@@ -138,17 +137,10 @@ namespace SessionSaverPlugin {
         public void on_manage_sessions_action () {
             SessionManagerDialog dialog = new SessionManagerDialog (this.window, this.store);
             dialog.session_selected.connect (load_session);
-            dialog.sessions_updated.connect (on_updated_sessions);
         }
 
         public void on_save_session_action () {
-            SessionSaverDialog dialog = new SessionSaverDialog (this.window, this.store, this.current_session);
-            dialog.sessions_updated.connect (on_updated_sessions);
-        }
-
-        public void on_updated_sessions () {
-            this.remove_menu ();
-            this.insert_menu ();
+            new SessionSaverDialog (this.window, this.store, this.current_session);
         }
 
         public void load_session (Session session) {
@@ -165,28 +157,6 @@ namespace SessionSaverPlugin {
             */
             Xed.commands_load_locations (this.window, session.session_files, null, 0);
             this.current_session = session.session_name;
-        }
-    }
-    
-    /*
-    * ViewActivatable
-    */
-    public class SessionSaverView : Xed.ViewActivatable, Peas.ExtensionBase {
-
-        public SessionSaverView () {
-            GLib.Object ();
-        }
-
-        public Xed.View view {
-            owned get; construct;
-        }
-
-        public void activate () {
-            print ("SessionSaverView activated\n");
-        }
-
-        public void deactivate () {
-            print ("SessionSaverView deactivated\n");
         }
     }
 

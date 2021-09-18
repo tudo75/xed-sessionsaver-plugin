@@ -32,12 +32,12 @@ namespace SessionSaverPlugin {
 
         public SessionModel (XMLSessionStore store) {
             this._store = store;
-            GLib.Type[] types = {typeof (Session), typeof (string)};
+            GLib.Type[] types = {typeof (GLib.SList<GLib.File>), typeof (string)};
             this.set_column_types (types);
             Gtk.TreeIter iter;
             foreach (var session in this._store) {
                 this.append (out iter);
-                this.set (iter, OBJECT_COLUMN, session);
+                this.set (iter, OBJECT_COLUMN, session.session_files);
                 this.set (iter, NAME_COLUMN, session.session_name);
             }
             store.session_added.connect_after (this.on_session_added);
@@ -48,23 +48,17 @@ namespace SessionSaverPlugin {
             Gtk.TreeIter iter;
             foreach (var session in this._store) {
                 this.append (out iter);
-                this.set (iter, OBJECT_COLUMN, session);
+                this.set (iter, OBJECT_COLUMN, session.session_files);
                 this.set (iter, NAME_COLUMN, session.session_name);
             }
         }
 
-        public void on_session_removed () {
+        public void on_session_removed (Session session) {
             Gtk.TreeIter iter;
-            foreach (var session in this._store) {
-                this.append (out iter);
-                this.set (iter, OBJECT_COLUMN, session);
-                this.set (iter, NAME_COLUMN, session.session_name);
-            }
-            /*
             if (this.get_iter_first (out iter)) {
                 while (true) {
-                    Session stored_session;
-                    this.@get (iter, OBJECT_COLUMN, out stored_session);
+                    Session stored_session = Session ();
+                    this.@get (iter, NAME_COLUMN, out stored_session.session_name, OBJECT_COLUMN, out stored_session.session_files);
                     if (stored_session == session) {
                         this.remove (ref iter);
                         break;
@@ -73,7 +67,6 @@ namespace SessionSaverPlugin {
                         break;
                 }
             }
-            */
         }
     }
 
@@ -187,6 +180,7 @@ namespace SessionSaverPlugin {
 
         public signal void session_selected (Session session);
         public signal void sessions_updated ();
+        public signal void session_removed (Session session);
 
         private const int OBJECT_COLUMN = 0;
         private const int NAME_COLUMN = 1;
@@ -194,6 +188,7 @@ namespace SessionSaverPlugin {
         private Xed.Window parent_xed_window;
         private Gtk.TreeView tree_view;
         private bool are_sessions_updated = false;
+        private SessionModel model;
 
         public SessionManagerDialog (Xed.Window parent_window, XMLSessionStore store) {
             this.parent_xed_window = parent_window;
@@ -205,7 +200,7 @@ namespace SessionSaverPlugin {
             this.sessions = store;
             this.set_size_request (400, 200);
 
-            SessionModel model = new SessionModel (this.sessions);
+            this.model = new SessionModel (this.sessions);
 
             Gtk.Box vbox = (Gtk.Box) this.get_content_area ();
             vbox.set_orientation (Gtk.Orientation.VERTICAL);
@@ -218,7 +213,7 @@ namespace SessionSaverPlugin {
             scrolled_window.set_shadow_type (Gtk.ShadowType.IN);
             scrolled_window.hscrollbar_policy = Gtk.PolicyType.NEVER;
 
-            this.tree_view = new Gtk.TreeView.with_model (model);
+            this.tree_view = new Gtk.TreeView.with_model (this.model);
             Gtk.CellRendererText renderer = new Gtk.CellRendererText ();
             Gtk.TreeViewColumn column = new Gtk.TreeViewColumn ();
             column.set_title (_("Session Name"));
@@ -262,12 +257,11 @@ namespace SessionSaverPlugin {
         }
 
         private Session get_current_session () {
-            Gtk.TreeModel model;
+            Gtk.TreeModel tree_model;
             Gtk.TreeIter iter;
-            this.tree_view.get_selection ().get_selected (out model, out iter);
-            string session_name = "";
-            model.get (iter, NAME_COLUMN, out session_name);
-            var session = this.sessions.get_item_by_string (session_name);
+            this.tree_view.get_selection ().get_selected (out tree_model, out iter);
+            var session = Session ();
+            tree_model.get (iter, NAME_COLUMN, out session.session_name, OBJECT_COLUMN, out session.session_files);
             return session;
         }
 
@@ -280,9 +274,16 @@ namespace SessionSaverPlugin {
         }
 
         private void on_delete_button_clicked (Gtk.Button button) {
-            Session session = this.get_current_session ();
-            this.sessions.remove (session);
-            this.are_sessions_updated = true;
+            try {
+                Session session = this.get_current_session ();
+                this.sessions.remove_session (session);
+                this.sessions.remove_xml_session (session);
+                this.model.on_session_removed (session);
+                this.are_sessions_updated = true;
+                this.should_save_sessions ();
+            } catch (GLib.Error e) {
+                print ("on_delete_button_clicked error: %s\n", e.message);
+            }
         }
 
         private void on_close_button_clicked (Gtk.Button button) {
@@ -299,7 +300,6 @@ namespace SessionSaverPlugin {
                 } catch (GLib.Error e) {
                     print ("should_save_sessions error: %s\n", e.message);
                 }
-
             }
         }
     }

@@ -48,19 +48,12 @@ namespace SessionSaverPlugin {
         // [Signal (run_last=true, type_none=true)]
         public signal void session_changed ();
         // [Signal (run_last=true, type_none=true)]
-        public signal void session_removed ();
+        public signal void session_removed (Session session);
 
         public SessionStore () {}
 
         public Session get_item (int index) {
-            return this [index];
-        }
-
-        public Session get_item_by_string (string session_name) {
-            foreach (var item in this)
-                if (item.session_name == session_name)
-                    return item;
-            return Session();
+            return this[index];
         }
 
         public int session_compare (Session a, Session b) {          
@@ -84,9 +77,11 @@ namespace SessionSaverPlugin {
         }
 
         public void remove_session (Session session) {
-            if (this.contains (session)) {
-                this.remove (session);
-                this.session_removed ();
+            for (var i = 0; i < this.size; i++) {
+                if (this.get_item (i).session_name == session.session_name) {
+                    this.remove_at (i);
+                    this.session_removed (session);
+                }
             }
         }
     }
@@ -113,7 +108,6 @@ namespace SessionSaverPlugin {
             doc = new GXml.Document.from_file (f);
             if (doc.child_element_count > 0)
                 saved_sessions = (GXml.Element) doc.first_element_child;
-
         }
 
         public void load () throws GLib.Error {
@@ -133,12 +127,11 @@ namespace SessionSaverPlugin {
         public void save () throws GLib.Error {
             for (var i = 0; i < this.size; i++) {
                 Session current = this.get_item (i);
-                GXml.Element new_session = this.get_session (doc, saved_sessions, current.session_name);
-                GLib.SList<GLib.File> session_files = (GLib.SList<GLib.File>) current.session_files.copy ();
-                if (session_files.length () > 0) {
-                    foreach (var file in session_files) {
+                GXml.Element new_session = this.get_session (doc, current.session_name);
+                if (current.session_files.length () > 0) {
+                    foreach (var file in current.session_files) {
                         if (file != null && file.get_uri () != "") {
-                            this.write_to_file (doc, new_session, file.get_uri ());
+                            this.add_session_file (doc, new_session, file.get_uri ());
                         }
                     }
                 }
@@ -146,7 +139,7 @@ namespace SessionSaverPlugin {
             saved_sessions.write_file (f);
         }
 
-        private GXml.Element get_session (GXml.Document doc, GXml.Element saved_sessions, string name) throws GLib.Error {
+        private GXml.Element get_session (GXml.Document doc, string name) throws GLib.Error {
             if (saved_sessions.child_element_count > 0) {
                 GXml.DomHTMLCollection sessions = saved_sessions.get_elements_by_tag_name ("session");
                 for (var i = 0; i < sessions.length; i++) {
@@ -155,10 +148,10 @@ namespace SessionSaverPlugin {
                     }
                 }
             }
-            return this.insert_session (doc, saved_sessions, name);
+            return this.insert_session (doc, name);
         }
 
-        private GXml.Element insert_session (GXml.Document doc, GXml.Element saved_sessions, string name) throws GLib.Error {
+        private GXml.Element insert_session (GXml.Document doc, string name) throws GLib.Error {
             GXml.Element new_session = new GXml.Element ();
             new_session.initialize_document (doc, "session");
             new_session.set_attribute ("name", name);
@@ -166,7 +159,7 @@ namespace SessionSaverPlugin {
             return new_session;
         }
 
-        private bool write_to_file (GXml.Document doc, GXml.Element session, string path) throws GLib.Error {
+        private bool add_session_file (GXml.Document doc, GXml.Element session, string path) throws GLib.Error {
             if (session.child_element_count > 0) {
                 GXml.DomHTMLCollection files = session.get_elements_by_tag_name ("file");
                 for (var i = 0; i < files.length; i++) {
@@ -180,6 +173,17 @@ namespace SessionSaverPlugin {
             new_file.set_attribute ("path", path);
             session.append_child (new_file);        
             return true;
+        }
+
+        public void remove_xml_session (Session session) throws GLib.Error  {
+            if (saved_sessions.child_element_count > 0) {
+                GXml.DomHTMLCollection sessions = saved_sessions.get_elements_by_tag_name ("session");
+                for (var i = 0; i < sessions.length; i++) {
+                    if (sessions[i].get_attribute ("name") == session.session_name) {
+                        saved_sessions.remove_child (sessions[i]);
+                    }
+                }
+            }
         }
     }
 }

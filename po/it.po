@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: com.github.tudo75.xed-sessionsaver-plugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-18 16:22+0200\n"
+"POT-Creation-Date: 2021-09-19 01:05+0200\n"
 "PO-Revision-Date: 2021-08-31 17:09+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -25,46 +25,46 @@ msgstr ""
 msgid "Xed porting of the Gedit sessionsaver plugin"
 msgstr ""
 
-#: src/sessionsaver.vala:117
+#: src/sessionsaver.vala:116
 msgid "Manage Saved Sessions"
 msgstr ""
 
-#: src/sessionsaver.vala:120
+#: src/sessionsaver.vala:119
 msgid "Save Session"
 msgstr ""
 
-#: src/sessionsaver.vala:208
+#: src/sessionsaver.vala:177
 msgid "<big>Xed SessionSaver Plugin Settings</big>"
 msgstr ""
 
-#: src/dialogs.vala:92
+#: src/dialogs.vala:85
 msgid "Save session"
 msgstr ""
 
-#: src/dialogs.vala:111
+#: src/dialogs.vala:104
 msgid "Cancel"
 msgstr ""
 
-#: src/dialogs.vala:114
+#: src/dialogs.vala:107
 msgid "Save"
 msgstr ""
 
-#: src/dialogs.vala:205
+#: src/dialogs.vala:195
 msgid "Saved Sessions"
 msgstr ""
 
-#: src/dialogs.vala:229
+#: src/dialogs.vala:219
 msgid "Session Name"
 msgstr ""
 
-#: src/dialogs.vala:241
+#: src/dialogs.vala:231
 msgid "Open"
 msgstr ""
 
-#: src/dialogs.vala:244
+#: src/dialogs.vala:234
 msgid "Remove"
 msgstr ""
 
-#: src/dialogs.vala:247
+#: src/dialogs.vala:237
 msgid "Close"
 msgstr ""
