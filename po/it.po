@@ -7,64 +7,69 @@ msgid ""
 msgstr ""
 "Project-Id-Version: com.github.tudo75.xed-sessionsaver-plugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-09-19 01:05+0200\n"
-"PO-Revision-Date: 2021-08-31 17:09+0200\n"
-"Last-Translator: Automatically generated\n"
+"POT-Creation-Date: 2021-09-19 07:37+0200\n"
+"PO-Revision-Date: 2021-09-19 04:17+0200\n"
+"Last-Translator: Nicola Tudino <tudo75@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ASCII\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.3\n"
+"X-Poedit-Basepath: ../src\n"
+"X-Poedit-SearchPath-0: dialogs.vala\n"
+"X-Poedit-SearchPath-1: session.vala\n"
+"X-Poedit-SearchPath-2: sessionsaver.vala\n"
 
 #: data/sessionsaver-plugin.desktop.in:5
-msgid "sessionsaver"
-msgstr ""
+#, fuzzy
+msgid "SessionSaver"
+msgstr "SessionSaver"
 
 #: data/sessionsaver-plugin.desktop.in:7
 msgid "Xed porting of the Gedit sessionsaver plugin"
-msgstr ""
+msgstr "Porting per Xed del plugin sessionsaver di Gedit"
 
 #: src/sessionsaver.vala:116
 msgid "Manage Saved Sessions"
-msgstr ""
+msgstr "Gestisci sessioni salvate"
 
-#: src/sessionsaver.vala:119
+#: src/sessionsaver.vala:119 src/dialogs.vala:85
 msgid "Save Session"
-msgstr ""
+msgstr "Salva la sessione"
 
 #: src/sessionsaver.vala:177
 msgid "<big>Xed SessionSaver Plugin Settings</big>"
-msgstr ""
+msgstr "<big>Impostazioni di Xed SessionSaver Plugin</big>"
 
-#: src/dialogs.vala:85
-msgid "Save session"
-msgstr ""
+#: src/dialogs.vala:98 src/dialogs.vala:219
+msgid "Session Name"
+msgstr "Nome della sessione"
 
 #: src/dialogs.vala:104
 msgid "Cancel"
-msgstr ""
+msgstr "Annulla"
 
 #: src/dialogs.vala:107
 msgid "Save"
-msgstr ""
+msgstr "Salva"
 
 #: src/dialogs.vala:195
 msgid "Saved Sessions"
-msgstr ""
-
-#: src/dialogs.vala:219
-msgid "Session Name"
-msgstr ""
+msgstr "Sessioni salvate"
 
 #: src/dialogs.vala:231
 msgid "Open"
-msgstr ""
+msgstr "Apri"
 
 #: src/dialogs.vala:234
 msgid "Remove"
-msgstr ""
+msgstr "Elimina"
 
 #: src/dialogs.vala:237
 msgid "Close"
-msgstr ""
+msgstr "Chiudi"
+
+#~ msgid "Save session"
+#~ msgstr "Salva la sessione"

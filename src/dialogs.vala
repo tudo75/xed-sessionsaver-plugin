@@ -82,7 +82,7 @@ namespace SessionSaverPlugin {
 
         public SessionSaverDialog (Xed.Window parent_window, XMLSessionStore store, string current_session) {
             this.parent_xed_window = parent_window;
-            this.set_title (_("Save session"));
+            this.set_title (_("Save Session"));
             this.set_transient_for (parent_window);
             this.set_border_width (10);
             this.set_resizable (false);
@@ -95,7 +95,7 @@ namespace SessionSaverPlugin {
             this.sessions = store;
             SessionModel model = new SessionModel (store);
 
-            Gtk.Label label = new Gtk.Label ("Session name:");
+            Gtk.Label label = new Gtk.Label (_("Session Name") + ":");
             label.set_xalign (0);
             
             this.combobox = new Gtk.ComboBox.with_model_and_entry (model);
@@ -103,10 +103,10 @@ namespace SessionSaverPlugin {
 
             Gtk.Button cancel_btn = (Gtk.Button) this.add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
             cancel_btn.set_image (new Gtk.Image.from_icon_name ("process-stop", Gtk.IconSize.BUTTON));
-            cancel_btn.set_alignment (0, (float) 0.5);
+            cancel_btn.set_valign (Gtk.Align.CENTER);
             this.save_btn = (Gtk.Button) this.add_button (_("Save"), Gtk.ResponseType.OK);
             this.save_btn.set_image (new Gtk.Image.from_icon_name ("document-save", Gtk.IconSize.BUTTON));
-            this.save_btn.set_alignment (0, (float) 0.5);
+            this.save_btn.set_valign (Gtk.Align.CENTER);
             
             if (current_session == null || current_session == "") {
                 this.on_name_combo_changed (combobox);
@@ -166,12 +166,6 @@ namespace SessionSaverPlugin {
                 }
                 this.sessions_updated ();
             }
-            if (response_id == Gtk.ResponseType.CANCEL) {
-                print ("ComboBoxDialog.on_response CANCEL emitted\n");
-            }
-            if (response_id == Gtk.ResponseType.DELETE_EVENT) {
-                print ("ComboBoxDialog.on_response DELETE_EVENT emitted\n");
-            }
             this.destroy ();
         }
     }
@@ -229,13 +223,13 @@ namespace SessionSaverPlugin {
             Gtk.Button remove_btn = new Gtk.Button.from_icon_name ("edit-delete", Gtk.IconSize.BUTTON);
             Gtk.Button close_btn = new Gtk.Button.from_icon_name ("process-stop", Gtk.IconSize.BUTTON);
             open_btn.set_label (_("Open"));
-            open_btn.set_alignment (0, (float) 0.5);
+            open_btn.set_valign (Gtk.Align.CENTER);
             open_btn.clicked.connect (this.on_open_button_clicked);
             remove_btn.set_label (_("Remove"));
-            remove_btn.set_alignment (0, (float) 0.5);
+            remove_btn.set_valign (Gtk.Align.CENTER);
             remove_btn.clicked.connect (this.on_delete_button_clicked);
             close_btn.set_label (_("Close"));
-            close_btn.set_alignment (0, (float) 0.5);
+            close_btn.set_valign (Gtk.Align.CENTER);
             close_btn.clicked.connect (this.on_close_button_clicked);
             button_box.pack_start (open_btn, false, true, 0);
             button_box.pack_start (remove_btn, false, true, 0);

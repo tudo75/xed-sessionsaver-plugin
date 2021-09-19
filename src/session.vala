@@ -65,8 +65,15 @@ namespace SessionSaverPlugin {
         }
 
         public void add_session (Session session) {
-            if (this.contains (session)) {
-                int index = this.index_of (session);
+            bool contains = false;
+            int index = 0;
+            for (var i = 0; i < this.size; i++) {
+                if (this.get_item (i).session_name == session.session_name) {
+                    contains = true;
+                    index = i;
+                }
+            }
+            if (contains) {
                 this [index] = session;
                 this.session_changed ();
             } else {

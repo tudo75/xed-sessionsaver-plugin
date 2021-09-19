@@ -71,7 +71,7 @@ namespace SessionSaverPlugin {
     * WindowActivatable
     */
     public class SessionSaverWindow : Xed.WindowActivatable, Peas.ExtensionBase {
-
+        
         private uint merge_id;
         private Gtk.UIManager manager;
         private XMLSessionStore store;
@@ -112,6 +112,7 @@ namespace SessionSaverPlugin {
         }
 
         private void insert_menu () {
+            //TODO refactoring of menu using xml and action entry
             action_group = new Gtk.ActionGroup ("sessionsaver");
             Gtk.Action action_manage_sessions = new Gtk.Action ("managedsession", _("Manage Saved Sessions"), _("Manage Saved Sessions"), "system-software-install");
             action_manage_sessions.activate.connect (this.on_manage_sessions_action);
