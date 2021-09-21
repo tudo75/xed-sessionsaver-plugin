@@ -50,7 +50,9 @@ namespace SessionSaverPlugin {
         // [Signal (run_last=true, type_none=true)]
         public signal void session_removed (Session session);
 
-        public SessionStore () {}
+        public SessionStore () {
+            this.sort ((CompareDataFunc<Session?>) session_compare);
+        }
 
         public Session get_item (int index) {
             return this[index];
@@ -75,6 +77,7 @@ namespace SessionSaverPlugin {
             }
             if (contains) {
                 this [index] = session;
+                this.sort ((CompareDataFunc<Session?>) session_compare);
                 this.session_changed ();
             } else {
                 this.add (session);
