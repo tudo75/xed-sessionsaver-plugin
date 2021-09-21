@@ -54,12 +54,12 @@ namespace SessionSaverPlugin {
         }
 
         public void activate () {
-            print ("SessionSaverApp activated\n");
+            // print ("SessionSaverApp activated\n");
 
         }
 
         public void deactivate () {
-            print ("SessionSaverApp deactivated\n");
+            // print ("SessionSaverApp deactivated\n");
         }
 
         public static Xed.Window create_window (Gdk.Screen screen) {
@@ -88,7 +88,7 @@ namespace SessionSaverPlugin {
         }
 
         public void activate () {
-            print ("SessionSaverWindow activated\n");
+            // print ("SessionSaverWindow activated\n");
             try {
                 store = new XMLSessionStore ();
                 store.load ();
@@ -103,7 +103,7 @@ namespace SessionSaverPlugin {
         }
 
         public void deactivate () {
-            print ("SessionSaverWindow deactivated\n");
+            // print ("SessionSaverWindow deactivated\n");
             this.remove_menu ();
         }
 
@@ -145,7 +145,7 @@ namespace SessionSaverPlugin {
         }
 
         public void load_session (Session session) {
-            /*
+            /* FIXME seems not to work because sessions are binded to windows so when I create a new one it can't find session to load
             Xed.Tab tab = this.window.get_active_tab ();
             Xed.Window new_window;
             if (tab != null && ! (tab.get_document ().is_untouched () && tab.get_state () == Xed.TabState.STATE_NORMAL)) {
