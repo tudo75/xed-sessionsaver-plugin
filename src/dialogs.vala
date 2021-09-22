@@ -28,9 +28,9 @@ namespace SessionSaverPlugin {
         private const int OBJECT_COLUMN = 0;
         private const int NAME_COLUMN = 1;
         private const int N_COLUMNS = 2;
-        private XMLSessionStore _store; 
+        private SchemaSessionStore _store; 
 
-        public SessionModel (XMLSessionStore store) {
+        public SessionModel (SchemaSessionStore store) {
             this._store = store;
             GLib.Type[] types = {typeof (GLib.SList<GLib.File>), typeof (string)};
             this.set_column_types (types);
@@ -75,12 +75,12 @@ namespace SessionSaverPlugin {
         public signal void sessions_updated ();
 
         private const int NAME_COLUMN = 1;
-        private XMLSessionStore sessions;
+        private SchemaSessionStore sessions;
         private Gtk.ComboBox combobox;
         private Gtk.Button save_btn;
         private Xed.Window parent_xed_window;
 
-        public SessionSaverDialog (Xed.Window parent_window, XMLSessionStore store, string current_session) {
+        public SessionSaverDialog (Xed.Window parent_window, SchemaSessionStore store, string current_session) {
             this.parent_xed_window = parent_window;
             this.set_title (_("Save Session"));
             this.set_transient_for (parent_window);
@@ -159,11 +159,7 @@ namespace SessionSaverPlugin {
                     }
                 }
                 this.sessions.add_session (new_session);
-                try {
-                    this.sessions.save ();
-                } catch (GLib.Error e) {
-                    print ("Error SaveSessionDialog.on_response XMLSessionStore.save: %s\n", e.message);
-                }
+                this.sessions.save ();
                 this.sessions_updated ();
             }
             this.destroy ();
@@ -178,13 +174,13 @@ namespace SessionSaverPlugin {
 
         private const int OBJECT_COLUMN = 0;
         private const int NAME_COLUMN = 1;
-        private XMLSessionStore sessions;
+        private SchemaSessionStore sessions;
         private Xed.Window parent_xed_window;
         private Gtk.TreeView tree_view;
         private bool are_sessions_updated = false;
         private SessionModel model;
 
-        public SessionManagerDialog (Xed.Window parent_window, XMLSessionStore store) {
+        public SessionManagerDialog (Xed.Window parent_window, SchemaSessionStore store) {
             this.parent_xed_window = parent_window;
             this.set_title (_("Saved Sessions"));
             this.set_transient_for (parent_window);
@@ -268,16 +264,11 @@ namespace SessionSaverPlugin {
         }
 
         private void on_delete_button_clicked (Gtk.Button button) {
-            try {
-                Session session = this.get_current_session ();
-                this.sessions.remove_session (session);
-                this.sessions.remove_xml_session (session);
-                this.model.on_session_removed (session);
-                this.are_sessions_updated = true;
-                this.should_save_sessions ();
-            } catch (GLib.Error e) {
-                print ("on_delete_button_clicked error: %s\n", e.message);
-            }
+            Session session = this.get_current_session ();
+            this.sessions.remove_session (session);
+            this.model.on_session_removed (session);
+            this.are_sessions_updated = true;
+            this.should_save_sessions ();
         }
 
         private void on_close_button_clicked (Gtk.Button button) {
@@ -287,13 +278,9 @@ namespace SessionSaverPlugin {
 
         private void should_save_sessions () {
             if (are_sessions_updated) {
-                try {
-                    this.sessions.save ();
-                    this.are_sessions_updated = false;
-                    this.sessions_updated ();
-                } catch (GLib.Error e) {
-                    print ("should_save_sessions error: %s\n", e.message);
-                }
+                this.sessions.save ();
+                this.are_sessions_updated = false;
+                this.sessions_updated ();
             }
         }
     }

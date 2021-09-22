@@ -1,7 +1,8 @@
 [Plugin]
 Module=sessionsaver
 IAge=2
-Name=SessionSaver
+Name=SessionSaver 
+Version=v0.0.2
 Description=Xed porting of the Gedit sessionsaver plugin
 Comment=Xed porting of the Gedit sessionsaver plugin
 Authors=Nicola "tudo75" Tudino

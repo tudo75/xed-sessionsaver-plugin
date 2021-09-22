@@ -11,10 +11,8 @@ To interface with xed some libraries are needed:
 * libglib2.0-dev
 * libgtk-3-dev
 * libgtksourceview-4-dev
-* libxml-2.0
 * libxapp-dev
 * xed-dev
-* gxml-0.20 (included as submodule project)
 
 ## Install
 

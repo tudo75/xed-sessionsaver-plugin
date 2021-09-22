@@ -74,7 +74,7 @@ namespace SessionSaverPlugin {
         
         private uint merge_id;
         private Gtk.UIManager manager;
-        private XMLSessionStore store;
+        private SchemaSessionStore store;
         private string current_session = "";
         private int n_sessions = 0;
         private Gtk.ActionGroup action_group;
@@ -89,12 +89,7 @@ namespace SessionSaverPlugin {
 
         public void activate () {
             // print ("SessionSaverWindow activated\n");
-            try {
-                store = new XMLSessionStore ();
-                store.load ();
-            } catch (GLib.Error e) {
-                print ("Errore XMLSessionStore: %s\n", e.message);
-            }
+            store = new SchemaSessionStore ();
             manager = window.get_ui_manager ();
 
             this.n_sessions = store.size;

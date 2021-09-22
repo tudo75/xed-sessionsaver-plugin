@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+    <schema path="/com/github/tudo75/xed-sessionsaver-plugin/" 
+        id="com.github.tudo75.xed-sessionsaver-plugin">
+        <key name="sessions" type="aas">
+            <default>[]</default>
+            <summary>Saved sessions</summary>
+            <description>Archive of the saved sessions.</description>
+        </key>
+    </schema>
+</schemalist>
+

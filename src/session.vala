@@ -90,110 +90,62 @@ namespace SessionSaverPlugin {
             for (var i = 0; i < this.size; i++) {
                 if (this.get_item (i).session_name == session.session_name) {
                     this.remove_at (i);
+                    this.sort ((CompareDataFunc<Session?>) session_compare);
                     this.session_removed (session);
                 }
             }
         }
     }
 
-    public class XMLSessionStore : SessionStore {
+    public class SchemaSessionStore : SessionStore {
 
-        private GXml.Document doc;
-        private GXml.Element saved_sessions;
-        private GLib.File f;
+        private GLib.Settings settings;
 
-        public XMLSessionStore () throws GLib.Error {
-            f = GLib.File.new_for_path (
-                                GLib.Path.build_filename (
-                                    GLib.Environment.get_user_config_dir(),
-                                    "xed/saved-sessions.xml"
-                                )
-                            );
-            if (! f.query_exists ()) {
-                GXml.Document tmp_doc = new GXml.Document();
-                GXml.DomElement tmp_saved_sessions = tmp_doc.create_element ("saved-sessions");
-                tmp_doc.append_child (tmp_saved_sessions);
-                tmp_doc.write_file (f);
-            }
-            doc = new GXml.Document.from_file (f);
-            if (doc.child_element_count > 0)
-                saved_sessions = (GXml.Element) doc.first_element_child;
-        }
+        public SchemaSessionStore () {
+            //get settings from compiled schema
+            settings = new GLib.Settings ("com.github.tudo75.xed-sessionsaver-plugin");
+            GLib.Variant sessionsVariant = settings.get_value ("sessions");
+                        
+            VariantIter iter = sessionsVariant.iterator ();
+            while (true) {
+                GLib.Variant itemVariant = iter.next_value ();
+                if (itemVariant == null)
+                    break;
 
-        public void load () throws GLib.Error {
-            if (saved_sessions.child_element_count > 0) {
-                GXml.DomHTMLCollection sessions = saved_sessions.get_elements_by_tag_name ("session");
-                for (var i = 0; i < sessions.length; i++) {
-                    Session new_session = {sessions[i].get_attribute ("name"), new GLib.SList<GLib.File> ()};
-                    GXml.DomHTMLCollection files = sessions[i].get_elements_by_tag_name ("file");
-                    for (var j = 0; j < files.length; j++) {
-                        new_session.add_file (files[j].get_attribute ("path"));
+                Session new_session = {"", new GLib.SList<GLib.File> ()};
+                var i = 0;
+                foreach (var item in itemVariant) {
+                    if (i == 0) {
+                        new_session.session_name = item.get_string ();
+                    } else {
+                        new_session.add_file (item.get_string ());
                     }
-                    this.add_session (new_session);
+                    i++;
                 }
+                this.add_session (new_session);
             }
         }
 
-        public void save () throws GLib.Error {
+        public void save () {
+            VariantBuilder sessions = new VariantBuilder (new VariantType ("aas"));
             for (var i = 0; i < this.size; i++) {
                 Session current = this.get_item (i);
-                GXml.Element new_session = this.get_session (doc, current.session_name);
+                VariantBuilder session = new VariantBuilder (new VariantType ("as"));;
+                session.add ("s", current.session_name);
                 if (current.session_files.length () > 0) {
                     foreach (var file in current.session_files) {
                         if (file != null && file.get_uri () != "") {
-                            this.add_session_file (doc, new_session, file.get_uri ());
+                            session.add ("s", file.get_uri ());
                         }
                     }
                 }
+                sessions.add ("as", session);
             }
-            saved_sessions.write_file (f);
-        }
+            GLib.Variant sessionsVariant = new GLib.Variant ("aas", sessions);
+            settings.set_value ("sessions", sessionsVariant);
 
-        private GXml.Element get_session (GXml.Document doc, string name) throws GLib.Error {
-            if (saved_sessions.child_element_count > 0) {
-                GXml.DomHTMLCollection sessions = saved_sessions.get_elements_by_tag_name ("session");
-                for (var i = 0; i < sessions.length; i++) {
-                    if (sessions[i].get_attribute ("name") == name) {
-                        return (GXml.Element) sessions[i];
-                    }
-                }
-            }
-            return this.insert_session (doc, name);
-        }
-
-        private GXml.Element insert_session (GXml.Document doc, string name) throws GLib.Error {
-            GXml.Element new_session = new GXml.Element ();
-            new_session.initialize_document (doc, "session");
-            new_session.set_attribute ("name", name);
-            saved_sessions.append_child (new_session);
-            return new_session;
-        }
-
-        private bool add_session_file (GXml.Document doc, GXml.Element session, string path) throws GLib.Error {
-            if (session.child_element_count > 0) {
-                GXml.DomHTMLCollection files = session.get_elements_by_tag_name ("file");
-                for (var i = 0; i < files.length; i++) {
-                    if (files[i].get_attribute ("path") == path) {
-                        return true;
-                    }
-                }
-            }
-            GXml.Element new_file = new GXml.Element ();
-            new_file.initialize_document (doc, "file");
-            new_file.set_attribute ("path", path);
-            session.append_child (new_file);        
-            return true;
-        }
-
-        public void remove_xml_session (Session session) throws GLib.Error  {
-            if (saved_sessions.child_element_count > 0) {
-                GXml.DomHTMLCollection sessions = saved_sessions.get_elements_by_tag_name ("session");
-                for (var i = 0; i < sessions.length; i++) {
-                    if (sessions[i].get_attribute ("name") == session.session_name) {
-                        saved_sessions.remove_child (sessions[i]);
-                    }
-                }
-            }
+            //print ("Save data: %s\n", sessionsVariant.print (true));
+            //print ("Save data type: %s\n", sessionsVariant.check_format_string ("aas", false).to_string ());
         }
     }
 }

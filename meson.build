@@ -1,7 +1,10 @@
 # project name and programming language
-project('com.github.tudo75.xed-sessionsaver-plugin', ['vala', 'c'], version: '0.0.1')
+project('com.github.tudo75.xed-sessionsaver-plugin', ['vala', 'c'], version: '0.0.2')
+
+assert('com.github.tudo75.xed-sessionsaver-plugin.gschema.xml'==meson.project_name() + '.gschema.xml', 'proj name and gschema file not the same')
 
 i18n = import('i18n')
+gnome = import('gnome')
 
 add_global_arguments('-DGETTEXT_PACKAGE="@0@"'.format (meson.project_name()), language:'c')
 
@@ -29,8 +32,6 @@ dependencies = [
 	dependency('gio-unix-2.0'),
     dependency('gobject-2.0'),
 	dependency('gee-0.8'),
-	dependency('libxml-2.0'),
-	gxml,
 	dependency('libpeas-1.0'),
 	dependency('libpeas-gtk-1.0'),
 	dependency('xed'),
@@ -45,8 +46,6 @@ PKGCONFIG_DEPS = [
     'gio-unix-2.0',
     'gobject-2.0',
     'gee-0.8',
-    'gxml-0.20',
-    'libxml-2.0',
     'libpeas-1.0',
     'libpeas-gtk-1.0',
     'xed',
@@ -55,3 +54,5 @@ PKGCONFIG_DEPS = [
 subdir('po')
 subdir('src')
 subdir('data')
+
+meson.add_install_script('build-aux/post_install.py')
