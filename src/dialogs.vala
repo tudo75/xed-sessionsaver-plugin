@@ -227,8 +227,20 @@ namespace SessionSaverPlugin {
             close_btn.set_label (_("Close"));
             close_btn.set_valign (Gtk.Align.CENTER);
             close_btn.clicked.connect (this.on_close_button_clicked);
+
+            Gtk.Button export_btn = new Gtk.Button.from_icon_name ("document-save", Gtk.IconSize.BUTTON);
+            export_btn.set_label (_("Export"));
+            export_btn.set_valign (Gtk.Align.CENTER);
+            export_btn.clicked.connect (this.on_export_button_clicked);
+            Gtk.Button import_btn = new Gtk.Button.from_icon_name ("document-open", Gtk.IconSize.BUTTON);
+            import_btn.set_label (_("Import"));
+            import_btn.set_valign (Gtk.Align.CENTER);
+            import_btn.clicked.connect (this.on_import_button_clicked);
+
             button_box.pack_start (open_btn, false, true, 0);
             button_box.pack_start (remove_btn, false, true, 0);
+            button_box.pack_start (export_btn, false, true, 0);
+            button_box.pack_start (import_btn, false, true, 0);
             button_box.pack_end (close_btn, false, true, 0);
 
             this.delete_event.connect (on_delete_event);
@@ -282,6 +294,33 @@ namespace SessionSaverPlugin {
                 this.are_sessions_updated = false;
                 this.sessions_updated ();
             }
+        }
+
+        private void on_export_button_clicked (Gtk.Button button) {
+            sessions.export_sessions (this.parent_xed_window);
+        }
+
+        private void on_import_button_clicked (Gtk.Button button) {
+            Gtk.MessageType message_type = Gtk.MessageType.ERROR;
+            string msg = "Import failed!";
+            if (sessions.import_sessions (this.parent_xed_window)) {
+                message_type = Gtk.MessageType.INFO;
+                msg = "Saved sessions succesfully imported.";
+                this.sessions_updated ();
+            }
+            Gtk.MessageDialog msg_dialog = new Gtk.MessageDialog (
+                this.parent_xed_window,
+                Gtk.DialogFlags.DESTROY_WITH_PARENT | Gtk.DialogFlags.MODAL,
+                message_type,
+                Gtk.ButtonsType.CLOSE,
+                msg
+            );
+            msg_dialog.response.connect (close_dialog);
+            msg_dialog.run ();
+        }
+
+        private void close_dialog (Gtk.Dialog dialog, int response_id) {
+            dialog.destroy ();
         }
     }
 }

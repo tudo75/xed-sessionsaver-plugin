@@ -143,9 +143,67 @@ namespace SessionSaverPlugin {
             }
             GLib.Variant sessionsVariant = new GLib.Variant ("aas", sessions);
             settings.set_value ("sessions", sessionsVariant);
+        }
 
-            //print ("Save data: %s\n", sessionsVariant.print (true));
-            //print ("Save data type: %s\n", sessionsVariant.check_format_string ("aas", false).to_string ());
+        public void export_sessions (Xed.Window parent_window) {
+            GLib.Variant sessionsVariant = settings.get_value ("sessions");
+            Json.Node root = Json.gvariant_serialize (sessionsVariant);
+            Json.Generator generator = new Json.Generator ();
+            generator.set_root (root);
+            // print ("JSON:\n%s\n", generator.to_data (null));
+            // print ("JSON pretty node:\n%s\n", Json.to_string (root, true));
+
+            Gtk.FileChooserNative export_dialog = new Gtk.FileChooserNative(_("Save saved-sessions.json"),
+                                       parent_window,
+                                       Gtk.FileChooserAction.SAVE,
+                                       _("Save"),
+                                       _("Cancel")
+                                       );
+            export_dialog.set_do_overwrite_confirmation (true);
+            export_dialog.set_current_name ("saved-sessions.json");
+            int response = export_dialog.run ();
+            if (response == Gtk.ResponseType.ACCEPT) {
+                GLib.File f = export_dialog.get_file ();
+                try {
+                    GLib.FileOutputStream file_stream = f.replace (null,
+                                                            false,
+                                                            GLib.FileCreateFlags.REPLACE_DESTINATION);
+                    var data_stream = new DataOutputStream (file_stream);
+                    data_stream.put_string (Json.to_string (root, true));
+                } catch (GLib.Error e) {
+                    print ("Error creating exported file: %s\n", e.message);
+                }
+            }
+        }
+
+        public bool import_sessions (Xed.Window parent_window) {
+            Gtk.FileChooserNative import_dialog = new Gtk.FileChooserNative(_("Open saved-sessions.json"),
+                                       parent_window,
+                                       Gtk.FileChooserAction.OPEN,
+                                       _("Open"),
+                                       _("Cancel")
+                                       );
+            int response = import_dialog.run ();
+            if (response == Gtk.ResponseType.ACCEPT) {
+                GLib.File f = import_dialog.get_file ();
+                try {
+                    GLib.DataInputStream dis = new GLib.DataInputStream (f.read ());
+                    string line;
+                    string content = "";
+                    while ((line = dis.read_line (null)) != null) {
+                        content += line;
+                    }
+                    Json.Parser parser = new Json.Parser ();
+                    parser.load_from_data (content);
+            		Json.Node node = parser.get_root ();
+                    GLib.Variant sessionsVariant = Json.gvariant_deserialize (node, "aas");
+                    settings.set_value ("sessions", sessionsVariant);
+                } catch (GLib.Error e) {
+                    print ("Error importing file: %s\n", e.message);
+                    return false;
+                }
+            }
+            return true;    
         }
     }
 }

@@ -34,6 +34,7 @@ dependencies = [
 	dependency('gee-0.8'),
 	dependency('libpeas-1.0'),
 	dependency('libpeas-gtk-1.0'),
+    dependency('json-glib-1.0'),
 	dependency('xed'),
 ]
 
@@ -48,6 +49,7 @@ PKGCONFIG_DEPS = [
     'gee-0.8',
     'libpeas-1.0',
     'libpeas-gtk-1.0',
+    'json-glib-1.0',
     'xed',
 ]
 

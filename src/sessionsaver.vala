@@ -133,10 +133,12 @@ namespace SessionSaverPlugin {
         public void on_manage_sessions_action () {
             SessionManagerDialog dialog = new SessionManagerDialog (this.window, this.store);
             dialog.session_selected.connect (load_session);
+            dialog.sessions_updated.connect (on_sessions_updated);
         }
 
         public void on_save_session_action () {
-            new SessionSaverDialog (this.window, this.store, this.current_session);
+            SessionSaverDialog dialog = new SessionSaverDialog (this.window, this.store, this.current_session);
+            dialog.sessions_updated.connect (on_sessions_updated);
         }
 
         public void load_session (Session session) {
@@ -153,6 +155,16 @@ namespace SessionSaverPlugin {
             */
             Xed.commands_load_locations (this.window, session.session_files, null, 0);
             this.current_session = session.session_name;
+        }
+
+        public void on_sessions_updated (Gtk.Dialog dialog) {
+            store = new SchemaSessionStore ();
+            this.n_sessions = store.size;
+            GLib.Type dialog_type = dialog.get_class ().get_type ();
+            dialog.destroy ();
+            if (dialog_type.name () == "SessionSaverPluginSessionManagerDialog") {
+                this.on_manage_sessions_action ();
+            }
         }
     }
 
