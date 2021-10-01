@@ -22,7 +22,6 @@ vapidir = get_option('datadir') / 'vala' / 'vapi'
 vapi_dir = meson.current_source_dir() / 'vapi'
 add_project_arguments(['--vapidir', vapi_dir], language: 'vala')
 add_project_arguments(['--enable-experimental'], language: 'vala')
-gxml =dependency('gxml-0.20', fallback : [ 'gxml', 'libgxml_dep' ])
 
 
 dependencies = [
