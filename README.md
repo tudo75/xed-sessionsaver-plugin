@@ -40,6 +40,17 @@ Run <code>./uninstall.sh</code> if you installed through meson system or if you 
     sudo rm /usr/share/locale/en/LC_MESSAGES/com.github.tudo75.xed-sessionsaver-plugin.mo
     sudo rm /usr/share/locale/it/LC_MESSAGES/com.github.tudo75.xed-sessionsaver-plugin.mo
 
+## Instructions
+
+Save Session
+
+To save current session go to "Tools" -> "Save Session" and in opened window give it a name, or choose from a previous saved one.
+
+Load Session
+
+To load a saved session go to "Tools" -> "Mange sessions" and choose the session you want to restore.
+Here you can also delete a saved session or export your saved sessions to import in another pc or to backup them.
+
 ## Credits
 
 Based on this Gedit Plugin
