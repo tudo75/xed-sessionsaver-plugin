@@ -5,5 +5,7 @@ Name=SessionSaver
 Version=v0.0.3
 Description=Xed porting of the Gedit sessionsaver plugin
 Comment=Xed porting of the Gedit sessionsaver plugin
+Icon=system-software-install
 Authors=Nicola "tudo75" Tudino
 Copyright=Copyright © 2021 Nicola "tudo75" Tudino
+Website=https://github.com/tudo75/xed-sessionsaver-plugin
