@@ -17,6 +17,10 @@ To interface with xed some libraries are needed:
 * libxapp-dev
 * xed-dev
 
+To install on Ubuntu based distros:
+
+    sudo apt install meson ninja-build build-essential valac cmake libgtk-3-dev libpeas-dev xed-dev libxapp-dev libgtksourceview-4-dev libgee-0.8-dev libjson-glib-dev
+
 ## Install
 
 Run <code>./run.sh</code> to install with meson build system.
