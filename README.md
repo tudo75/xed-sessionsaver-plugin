@@ -60,3 +60,10 @@ Here you can also delete a saved session or export your saved sessions to import
 Based on this Gedit Plugin
 
 https://gitlab.gnome.org/GNOME/gedit-plugins/-/tree/master/plugins/sessionsaver
+
+## My Xed Plugins
+* xed-terminal-plugin https://github.com/tudo75/xed-terminal-plugin
+* xed-codecomment-plugin https://github.com/tudo75/xed-codecomment-plugin
+* xed-sessionsaver-plugin https://github.com/tudo75/xed-sessionsaver-plugin
+* xed-restore-tabs-plugin https://github.com/tudo75/xed-restore-tabs-plugin
+* xed-plantuml-plugin https://github.com/tudo75/xed-plantuml-plugin 
