@@ -5,6 +5,7 @@ tests
 *.pot
 *.mo
 *.deb
+*.ddeb
 
 build
 config.*
@@ -19,6 +20,13 @@ stamp-h1
 *.pc
 .tarball-version
 .version
+debian/build
+debian/tmp
+debian/xed-sessionsaver-plugin
+debian/.debhelper
+debian/xed-sessionsaver-plugin.substvars
+debian/xed-sessionsaver-plugin.debhelper.log
+debian/files
 
 *.gcda
 *.gcno
