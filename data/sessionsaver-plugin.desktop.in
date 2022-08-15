@@ -2,7 +2,7 @@
 Module=sessionsaver
 IAge=2
 Name=SessionSaver 
-Version=v0.0.3
+Version=v0.1.0
 Description=Xed porting of the Gedit sessionsaver plugin
 Comment=Xed porting of the Gedit sessionsaver plugin
 Icon=system-software-install
